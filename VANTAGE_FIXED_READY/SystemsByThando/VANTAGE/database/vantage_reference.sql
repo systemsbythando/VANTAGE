@@ -1,0 +1,106 @@
+CREATE DATABASE IF NOT EXISTS vantage_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE vantage_db;
+
+CREATE TABLE IF NOT EXISTS users (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  username VARCHAR(100) NULL UNIQUE,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('ADMIN','PARTNER','STAFF','CUSTOMER') NOT NULL DEFAULT 'CUSTOMER',
+  account_status ENUM('ACTIVE','INACTIVE','SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
+  last_login DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS clients (
+  client_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  company_name VARCHAR(180) NOT NULL,
+  contact_name VARCHAR(180) NULL,
+  email VARCHAR(190) NULL,
+  phone VARCHAR(50) NULL,
+  status ENUM('ACTIVE','INACTIVE','PROSPECT') DEFAULT 'ACTIVE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(user_id), INDEX(status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS projects (
+  project_id INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NULL,
+  project_name VARCHAR(180) NOT NULL,
+  description TEXT NULL,
+  status ENUM('PLANNING','IN_PROGRESS','TESTING','COMPLETED','ON_HOLD','CANCELLED') DEFAULT 'PLANNING',
+  progress TINYINT UNSIGNED DEFAULT 0,
+  start_date DATE NULL,
+  due_date DATE NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(client_id), INDEX(status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS invoices (
+  invoice_id INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT NULL,
+  project_id INT NULL,
+  invoice_number VARCHAR(100) NOT NULL UNIQUE,
+  issue_date DATE NOT NULL,
+  due_date DATE NULL,
+  subtotal DECIMAL(15,2) DEFAULT 0.00,
+  tax DECIMAL(15,2) DEFAULT 0.00,
+  total_amount DECIMAL(15,2) DEFAULT 0.00,
+  status ENUM('DRAFT','SENT','PARTIALLY_PAID','PAID','OVERDUE','CANCELLED') DEFAULT 'DRAFT',
+  notes TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(client_id), INDEX(status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS payments (
+  payment_id INT AUTO_INCREMENT PRIMARY KEY,
+  invoice_id INT NULL,
+  client_id INT NULL,
+  amount_paid DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  payment_method VARCHAR(50) NULL,
+  payment_date DATE NULL,
+  reference VARCHAR(100) NULL,
+  notes TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(invoice_id), INDEX(client_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  activity_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  action VARCHAR(255) NOT NULL,
+  details TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(user_id), INDEX(created_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS messages (
+  message_id INT AUTO_INCREMENT PRIMARY KEY,
+  sender_id INT NULL,
+  receiver_id INT NULL,
+  subject VARCHAR(180) NULL,
+  message TEXT NOT NULL,
+  is_read TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX(sender_id), INDEX(receiver_id), INDEX(created_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS leads (
+  lead_id INT AUTO_INCREMENT PRIMARY KEY,
+  business_name VARCHAR(180) NOT NULL,
+  contact_name VARCHAR(180) NULL,
+  email VARCHAR(190) NULL,
+  phone VARCHAR(50) NULL,
+  industry VARCHAR(100) NULL,
+  website VARCHAR(255) NULL,
+  pain_point TEXT NULL,
+  source VARCHAR(100) NULL,
+  status VARCHAR(50) DEFAULT 'NEW',
+  estimated_value DECIMAL(15,2) DEFAULT 0.00,
+  next_action VARCHAR(255) NULL,
+  next_action_date DATE NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
